@@ -325,6 +325,25 @@ function Stars({ value, onChange }) {
   );
 }
 
+// Compact star widget used to "unlock" a session price by rating it.
+// Stops click propagation so card-level onClick handlers don't fire.
+function MiniStars({ onPick, size = "base" }) {
+  const cls = size === "lg" ? "text-2xl" : "text-base";
+  return (
+    <div className="flex gap-0.5" onClick={(e) => e.stopPropagation()}>
+      {[1,2,3,4,5].map((n) => (
+        <button key={n}
+          onClick={(e) => { e.stopPropagation(); onPick(n); }}
+          className={`${cls} leading-none transition-transform hover:scale-110`}
+          style={{ color: BD }}
+          aria-label={`Rate ${n} star${n > 1 ? "s" : ""} to reveal price`}>
+          ★
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function ExpertPhoto({ src, name }) {
   const [err, setErr] = useState(false);
   if (err) {
@@ -444,7 +463,7 @@ function Sidebar({ active, onNav, unreadMsg }) {
 // CAREER CIRCLES SCREENS
 // ─────────────────────────────────────────────────────────────────────────────
 
-function CC_Overview({ onSelect }) {
+function CC_Overview({ onSelect, ratings, onRate }) {
   return (
     <div className="p-7 max-w-2xl">
       <div className="mb-6">
@@ -475,7 +494,14 @@ function CC_Overview({ onSelect }) {
                     <p className="font-bold text-sm leading-snug" style={{ color: BK }}>{s.title}</p>
                     <p className="text-xs mt-0.5" style={{ color: GR }}>{s.question}</p>
                   </div>
-                  <span className="text-base font-black flex-shrink-0" style={{ color: P }}>€20</span>
+                  {ratings[s.id] ? (
+                    <div className="flex flex-col items-end flex-shrink-0">
+                      <span className="text-base font-black" style={{ color: P }}>€20</span>
+                      <span className="text-[10px] mt-0.5" style={{ color: PM }}>⭐ {ratings[s.id]}/5</span>
+                    </div>
+                  ) : (
+                    <MiniStars onPick={(n) => onRate(s.id, n)} />
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center gap-2 mt-2.5">
                   <span className="text-xs" style={{ color: GR }}>📅 {s.date}</span>
@@ -495,8 +521,9 @@ function CC_Overview({ onSelect }) {
   );
 }
 
-function CC_Detail({ session: s, onJoin, back }) {
+function CC_Detail({ session: s, onJoin, back, ratings, onRate }) {
   const [tab, setTab] = useState("plan");
+  const rated = ratings && ratings[s.id];
 
   return (
     <div className="max-w-2xl">
@@ -555,29 +582,44 @@ function CC_Detail({ session: s, onJoin, back }) {
               </div>
             </div>
 
-            {/* Pricing */}
+            {/* Pricing — locked behind a star rating */}
             <div className="mt-7 pt-6" style={{ borderTop: `1px solid ${BD}` }}>
-              <div className="flex gap-3">
-                <Card pad="p-4" className="flex-1 text-center">
-                  <p className="text-2xl font-black" style={{ color: BK }}>€20</p>
-                  <p className="text-xs mt-0.5" style={{ color: GR }}>Single session</p>
-                  <p className="text-xs mt-1 font-medium leading-relaxed" style={{ color: P }}>
-                    + your circle chat<br />+ community chat
+              {rated ? (
+                <>
+                  <p className="text-xs mb-3 font-medium" style={{ color: PM }}>
+                    ⭐ You rated this session {rated}/5 — pricing unlocked
                   </p>
-                  <PBtn onClick={onJoin} full className="mt-3" size="sm">Join this session</PBtn>
-                </Card>
-                <Card pad="p-4" className="flex-1 text-center" style={{ border: `1.5px solid ${P}` }}>
-                  <div className="flex items-center justify-center gap-1.5">
-                    <p className="text-2xl font-black" style={{ color: P }}>€99</p>
-                    <Pill variant="green">Save €21</Pill>
+                  <div className="flex gap-3">
+                    <Card pad="p-4" className="flex-1 text-center">
+                      <p className="text-2xl font-black" style={{ color: BK }}>€20</p>
+                      <p className="text-xs mt-0.5" style={{ color: GR }}>Single session</p>
+                      <p className="text-xs mt-1 font-medium leading-relaxed" style={{ color: P }}>
+                        + your circle chat<br />+ community chat
+                      </p>
+                      <PBtn onClick={onJoin} full className="mt-3" size="sm">Join this session</PBtn>
+                    </Card>
+                    <Card pad="p-4" className="flex-1 text-center" style={{ border: `1.5px solid ${P}` }}>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <p className="text-2xl font-black" style={{ color: P }}>€99</p>
+                        <Pill variant="green">Save €21</Pill>
+                      </div>
+                      <p className="text-xs mt-0.5" style={{ color: GR }}>Bundle · 6 sessions</p>
+                      <p className="text-xs mt-1 font-medium leading-relaxed" style={{ color: P }}>
+                        + your circle chat<br />+ community chat
+                      </p>
+                      <SBtn full className="mt-3 text-xs py-2">Buy bundle</SBtn>
+                    </Card>
                   </div>
-                  <p className="text-xs mt-0.5" style={{ color: GR }}>Bundle · 6 sessions</p>
-                  <p className="text-xs mt-1 font-medium leading-relaxed" style={{ color: P }}>
-                    + your circle chat<br />+ community chat
-                  </p>
-                  <SBtn full className="mt-3 text-xs py-2">Buy bundle</SBtn>
+                </>
+              ) : (
+                <Card pad="p-5" className="text-center">
+                  <p className="text-sm font-semibold mb-1" style={{ color: BK }}>Rate this session to reveal pricing</p>
+                  <p className="text-xs mb-4" style={{ color: GR }}>Your gut reaction helps us understand interest.</p>
+                  <div className="flex justify-center">
+                    <MiniStars size="lg" onPick={(n) => onRate(s.id, n)} />
+                  </div>
                 </Card>
-              </div>
+              )}
             </div>
           </div>
         )}
@@ -811,12 +853,14 @@ function CC_Done({ session: s, goBack }) {
 function CareerCircles() {
   const [screen, setScreen] = useState("overview");
   const [session, setSession] = useState(null);
+  const [ratings, setRatings] = useState({});
 
   const go = (s, data) => { if (data) setSession(data); setScreen(s); };
+  const rate = (id, n) => setRatings((r) => ({ ...r, [id]: n }));
 
   const screens = {
-    overview: <CC_Overview onSelect={(s) => go("detail", s)} />,
-    detail:   session && <CC_Detail session={session} onJoin={() => go("session")} back={() => go("overview")} />,
+    overview: <CC_Overview onSelect={(s) => go("detail", s)} ratings={ratings} onRate={rate} />,
+    detail:   session && <CC_Detail session={session} onJoin={() => go("session")} back={() => go("overview")} ratings={ratings} onRate={rate} />,
     session:  session && <CC_Session session={session} onEnd={() => go("feedback")} back={() => go("detail")} />,
     feedback: session && <CC_Feedback session={session} onDone={() => go("done")} back={() => go("session")} />,
     done:     session && <CC_Done session={session} goBack={() => go("overview")} />,
