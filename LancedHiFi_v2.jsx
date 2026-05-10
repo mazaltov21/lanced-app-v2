@@ -335,7 +335,7 @@ function PriceReveal({ amount, color, revealed, onToggle, size = "base" }) {
       className={`${cls} flex-shrink-0 leading-none hover:opacity-70 transition-opacity`}
       style={{ color }}
       aria-label={revealed ? "Hide price" : "Reveal price"}>
-      €{revealed ? amount : <span style={{ letterSpacing: "0.05em" }}>★★★</span>}
+      €{revealed ? amount : <span style={{ letterSpacing: "0.05em" }}>•••</span>}
     </button>
   );
 }
@@ -565,7 +565,7 @@ function CC_Detail({ session: s, onJoin, back, revealed, onToggle }) {
                 ))}
                 {/* Tool as special last item */}
                 <div className="flex items-start gap-2.5">
-                  <span className="text-base flex-shrink-0 mt-0.5">🛠</span>
+                  <span className="text-base flex-shrink-0 mt-0.5">⭐</span>
                   <span className="text-sm font-semibold" style={{ color: BK }}>{s.tool.title}</span>
                 </div>
               </div>
@@ -811,7 +811,7 @@ function CC_Done({ session: s, goBack }) {
       </p>
       <Card pad="p-4" className="w-full text-left mb-4" style={{ border: `1.5px solid ${P}` }}>
         <div className="flex gap-3">
-          <span className="text-xl">🛠</span>
+          <span className="text-xl">⭐</span>
           <div>
             <p className="font-semibold text-sm" style={{ color: BK }}>{s.tool.title}</p>
             <p className="text-xs mt-0.5" style={{ color: GR }}>Shared to your circle group chat.</p>
